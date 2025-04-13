@@ -1,0 +1,11 @@
+mne==1.9
+numpy
+matplotlib
+pandas
+seaborn
+scikit-learn
+pylsl
+pyKey
+pynput
+# braindecode
+# ptytorch
