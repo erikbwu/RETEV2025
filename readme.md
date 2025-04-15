@@ -1,47 +1,63 @@
-# EEG Hackathon
+# EEG Hackathon 🧠🎮
 
-Hey hackers!
+Hey hackers! 👋
 
-You have come to the right place to get started with EEG data analysis... in a fun way.
-In this repository, we will provide you with the necessary tools to collect and analyze EEG data while playing a game by focussing on the game "Canabalt".
-The goal is to process the EEG data to detect when the player is pressing a key and to classify the key-stroke based on a short signal window.
+Welcome to the EEG Hackathon repository! You've come to the right place to dive into EEG data analysis in a fun and engaging way.
+In this repository, you'll find all the tools you need to collect and analyze EEG data while playing the game "Canabalt."
 
-## Getting Started & Dependencies
+The goal of this project is to process EEG data to detect when a player presses a key and classify the keystroke based on a short signal window. Let’s get started!
 
-General system requirements:
+## 🚀 Getting Started & Dependencies
 
-- Windows 10 or higher
-- Bluetooth to connect to the EEG cap
-- Anaconda or a different venv to run the Python code
+### General System Requirements ⚙️
 
-### Install the EEG Software
+Before you begin, ensure your system meets the following requirements:
 
-We provided each team a Unicorn Hybrid Black EEG cap from g.tec. This is a wireless, easy to use EEG cap that we will use to collect EEG data.
-The software to connect to the record EEG cap and stream the data can be downloaded from the g.tec website [here](https://www.gtec.at/product/unicorn-suite/).  
+- Operating System: Windows 10 or later
+- Hardware: Bluetooth capability (to connect to the EEG cap)
+- Python Environment: Anaconda (recommended) or an alternative virtual environment manager
 
-Once you installed the software, start the Unicorn suite, go to the tab "My Unicorn" and connect to the EEG cap.
-Make sure that the EEG cap is charged and turned on. Also check your bluetooth settings to make sure that the EEG cap is connected to your PC.
+### Install the EEG Software 🖥️
 
-Once the EEG cap is connected, go to the tab "Apps" and download the Unicorn Recorder.
-If you want you can also install the Unicorn Bandpower for free for testing purposes.
+Each team has been provided with a Unicorn Hybrid Black EEG cap from g.tec. This wireless, user-friendly EEG cap will be used for data collection.
 
-### Install the Python Libraries
+To set it up:
 
-To handle the EEG data, we will use the MNE-Python library. This is a powerful library for processing and analyzing EEG data.
-The provided code is written in Python. Please run the following to install the required libraries assuming you have (Anaconda)[https://www.anaconda.com/docs/getting-started/miniconda/install#power-shell] already installed:
+1. Download the Unicorn Suite software from the g.tec website.
+1. Install the software and launch it.
+1. Navigate to the "My Unicorn" tab and connect to your EEG cap:
+    - Ensure the EEG cap is fully charged and powered on.
+    - Check your Bluetooth settings to confirm that your PC is paired with the cap.
+1. Once connected, go to the "Apps" tab in Unicorn Suite and download Unicorn Recorder.
+    - Optionally, you can also install Unicorn Bandpower for testing purposes.
+
+### Install Python Libraries 🐍
+
+We’ll use [MNE-Python](https://mne.tools/stable/index.html), a powerful library for processing and analyzing EEG data.
+
+Follow these steps to set up your Python environment:
+
+- Ensure you have [Anaconda](https://www.anaconda.com/docs/getting-started/miniconda/install#power-shell) installed on your system.
+- Run the following commands in your terminal or PowerShell:
 
 ```bash
 conda create -n eeg python=3.13 -y
 conda activate eeg
 pip install -r requirements.txt
+This will create a virtual environment named eeg and install all required dependencies listed in requirements.txt.
 ```
 
-### Download the Game
+### Download the Game 🎮
+For this hackathon, we’ll use "Canabalt" a classic endless runner game where players jump over obstacles by pressing the space bar. This setup provides us with clean, well-defined stimulus onset events (space bar presses) for EEG data collection.
 
-The game that we are using is the J&R classic "Canabalt" - a simple endless runner where the player has to jump over obstacles by hitting nothing else then the space bar. \
-This gives us a clean way to collect EEG data while the subject is playing the game, because the stimulus onset is clearly defined by the space bar press.
+We’ve also included an alternative game, "2048" which offers a more relaxed gameplay experience but involves more complex controls.
 
-Please follow the instructions for the open source GitHub repo of the game [here](https://github.com/ninjamuffin99/canabalt-hf).
+To get started with _Canabalt_:
 
-If you are facing issues compiling the game for windows, try compiling it for html5. You can then run the game in your browser but you need to install [node.js](https://nodejs.org/en/download) to run it.
+1. Clone or download the open-source repository from GitHub: [Canabalt GitHub Repo](https://github.com/ninjamuffin99/canabalt-hf).
+1. Follow the instructions in the repository to compile the game for Windows. \
+    If you encounter issues compiling it for Windows:
+    - Try compiling it for HTML5 instead.
+    - You’ll need [Node.js](https://nodejs.org/en/download) installed on your system to run it in your browser.
 
+Let us know if you encounter any issues or have questions during setup — happy hacking! 🚀
