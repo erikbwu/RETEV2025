@@ -1,7 +1,7 @@
 import os
 import time
 
-from utils import KeyLogger, EEGLogger
+from utils.utils import KeyLogger, EEGLogger
 
 
 def get_subject_id():

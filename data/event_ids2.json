@@ -1,0 +1,12 @@
+{
+    "up_press": 0,
+    "up_release": 1,
+    "down_press": 2,
+    "down_release": 3,
+    "left_press": 4,
+    "left_release": 5,
+    "right_press": 6,
+    "right_release": 7,
+    "space_press": 8,
+    "space_release": 9
+}

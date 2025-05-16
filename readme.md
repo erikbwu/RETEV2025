@@ -7,7 +7,7 @@ In this repository, you'll find all the tools you need to collect and analyze EE
 
 The goal of this project is to process EEG data to detect when a player presses a key and classify the keystroke based on a short signal window. Let’s get started!
 
-## 🚀 Getting Started & Dependencies
+## 🚀 Getting Started
 
 ### General System Requirements ⚙️
 
@@ -61,3 +61,49 @@ To get started with _Canabalt_:
     - You’ll need [Node.js](https://nodejs.org/en/download) installed on your system to run it in your browser.
 
 Let us know if you encounter any issues or have questions during setup — happy hacking! 🚀
+
+
+## Data Collection 📊
+
+To collect EEG data while playing the game, follow these steps:
+
+1. Set up the EEG cap:
+    - Ensure the cap is properly fitted and all electrodes are in contact with your scalp.
+    - Turn the cap on.
+
+1. Launch the Unicorn Suite software and connect to your EEG cap.
+
+1. Select the filter settings in the Unicorn Suite - this is a recommendation:
+    - Use a bandpass filter between 0.1 Hz and 50 Hz.
+    - Use a notch filter at 50 Hz to remove power line noise.
+    - use the OSCAR filter if you want to remove eye blinks and muscle artifacts.
+
+1. Run the `data_collection.py` script to start collecting the EEG data and the key logger
+
+```bash
+# run from the root of the repository
+python -m data.data_collection
+```
+
+1. After you finish playing the game, stop the data collection script by pressing `Ctrl + C` in the terminal.
+
+After collecting the data you can run the `combine_data.py` script in the data folder to merge the logged key presses with the EEG data. Make sure the that the `event_ids` json file maps all the key events you are interessted in (should only include space bra pressed for Canabalt).
+
+## Data Analysis 🔍
+
+Once you have collected the EEG data, you can analyze it using the provided notebook `signal_analysis.ipynb`. 
+This notebook includes the following steps:
+
+1. Load the EEG data and the key press events.
+1. Preprocess the data (e.g., filtering, epoching).
+1. Visualize the results.
+
+## Training a Classifier 🏋️
+
+There is a folder called `features` to define the feature extraction methods and a class to build the final feature extractor. \
+The model machine learning models and deep learning architectures should be stored in the `models` folder. \
+To train a classifier, you can use the provided scripts in the `train` folder.
+
+## EEG Control 🧠
+
+To control the game using EEG signals you can use the `eeg_keyboard.py` script in the utils folder. Add your trained model from the `checkpoints` folder to the script and run it. Depending on your setup you have to change what data is given to the model.

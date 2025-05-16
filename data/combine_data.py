@@ -108,20 +108,20 @@ def temporal_alignment(key_data: pd.DataFrame, eeg_data: pd.DataFrame, event_map
     return merged_data
 
 
-def main():
-    
-    DELAY = 0.0  # delay in seconds to account for the latency of the EEG system
+def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif_data_dir: str, event_map: dict, delay: float=0.0):
+    """
+    Create datasets from key and EEG data by merging them and saving as CSV and FIF files.
 
-    key_data_dir = "data/key_recordings/"
-    eeg_data_dir = "data/eeg_recordings/"  # change this to eeg_raw_recordings if you want to use the raw data
-    csv_data_dir = "data/datasets/csv/"
-    fif_data_dir = "data/datasets/fif/"
+    Arguments:
+        key_data_dir (str): Directory containing key data.
+        eeg_data_dir (str): Directory containing EEG data.
+        csv_data_dir (str): Directory to save the merged CSV files.
+        fif_data_dir (str): Directory to save the FIF files.
+        event_map (dict): Dictionary mapping keys to event IDs.
+        delay (float): Delay in seconds to account for the latency of the EEG system.
+    """
     assert os.path.exists(key_data_dir), f"Key log directory {key_data_dir} does not exist."
     assert os.path.exists(eeg_data_dir), f"EEG log directory {eeg_data_dir} does not exist."
-
-    # load the event ID mapping (key-stroke to id)
-    with open('data/event_ids.json') as f:
-        event_map = json.load(f)
     
     subjects = sorted(os.listdir(key_data_dir))
     print(f"Subjects found: {subjects}")
@@ -146,7 +146,7 @@ def main():
             eeg_data = pd.read_csv(os.path.join(eeg_sub_dir, eeg_file))
             
             # merge the data
-            merged_data = temporal_alignment(key_data, eeg_data, event_map, delay=DELAY)
+            merged_data = temporal_alignment(key_data, eeg_data, event_map, delay=delay)
 
             # save the merged data as csv file
             merged_data.to_csv(os.path.join(csv_sub_dir, key_file), index=False)
@@ -158,7 +158,34 @@ def main():
             fif_path = os.path.join(fif_sub_dir, key_file.replace('.csv', '.fif'))
             fif_data.save(fif_path, overwrite=True)
 
-            
+
+def main():
+    
+    DELAY = 0.0  # delay in seconds to account for the latency of the EEG system
+
+    # load the event ID mapping (key-stroke to id)
+    with open('data/event_ids1.json') as f:
+        event_map = json.load(f)
+
+    # create the datasets using the filtered data
+    create_datasets(
+        "data/key_recordings/",
+        "data/eeg_recordings/",
+        "data/datasets/csv/",
+        "data/datasets/fif/",
+        event_map,
+        delay=DELAY
+    )
+
+    # create the dataset using the raw data
+    create_datasets(
+        "data/key_recordings/",
+        "data/eeg_raw_recordings/",
+        "data/datasets_raw/csv/",
+        "data/datasets_raw/fif/",
+        event_map,
+        delay=DELAY
+    )
 
 if __name__ == "__main__":
     main()
