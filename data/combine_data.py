@@ -45,7 +45,7 @@ def create_fif(data_df: pd.DataFrame) -> mne.io.RawArray:
     # Create MNE events (event format [sample, _, event_id])
     stimuli = data_df['stimulus'].values
     events = [[i, 0, stim] for i, stim in enumerate(stimuli) if stim != 0]  
-    events = np.array(events)
+    events = np.array(events, dtype=int)
 
     # Create a new Raw object for the stimulus channel
     stim_channel = np.zeros((1, raw.n_times))
@@ -154,10 +154,12 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
 
             # --- SKIP_START: drop everything before skip_start, then re-zero times ---
             if skip_start > 0:
-                eeg_data = eeg_data[eeg_data['sys_time'] >= skip_start].copy()
+                min_t = eeg_data['sys_time'].min()
+                thresh_t = min_t + skip_start
+                eeg_data = eeg_data[eeg_data['sys_time'] >= thresh_t].copy()
                 eeg_data['sys_time'] -= skip_start                                            # re-zero sys_time
 
-                key_data = key_data[key_data['timestamp'] >= skip_start].copy()
+                key_data = key_data[key_data['timestamp'] >= thresh_t].copy()
                 key_data['timestamp'] -= skip_start                                           # re-zero key timestamps
 
             if drop_end > 0: # EEG: keep rows where sys_time <= max_time - drop_end
