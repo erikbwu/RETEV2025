@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="./data/datasets/csv/",
+        default="./data/datasets_raw/csv/",
         help="Path to the dataset directory.",
     )
     parser.add_argument(  # accept list of subject sub-01 sub-02 ...
@@ -123,7 +123,7 @@ def main():
     # create the dataset
     ds = EEGDataset(args.data_path, args.subjects, test_split=0.2)
     X_train, y_train, X_test, y_test = ds.get_dataset(
-        time_window=0.5, overlap=0.50, balance=1.0
+        time_window=1.5, overlap=0.50, balance=1.0
     )
     print("dataset classes: ", np.unique(y_train, return_counts=True))
 
@@ -150,7 +150,7 @@ def main():
         pickle.dump(model, f)
 
     # evaluate the model on the test set
-    # evaluate(model_dir, X_test, y_test)
+    evaluate(model_dir, X_test, y_test)
 
 
 if __name__ == "__main__":

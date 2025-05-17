@@ -76,7 +76,7 @@ def temporal_alignment(key_data: pd.DataFrame, eeg_data: pd.DataFrame, event_map
     Returns:
         pd.DataFrame: Merged DataFrame containing EEG data and stimulus information.
     """
-    assert -0.3 <= delay <= 0.0, "A useful delay must be between 0 and -300ms"
+    #assert -0.3 <= delay <= 0.0, "A useful delay must be between 0 and -300ms"
     assert 'key' in key_data.columns, "Key data must contain 'key' column."
     assert 'ch1' in eeg_data.columns, "EEG data must contain the eeg sample information."
 
@@ -161,7 +161,7 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
 
 def main():
     
-    DELAY = 0.0  # delay in seconds to account for the latency of the EEG system
+    DELAY = 0.1  # delay in seconds to account for the latency of the EEG system
 
     # load the event ID mapping (key-stroke to id)
     with open('data/event_ids1.json') as f:

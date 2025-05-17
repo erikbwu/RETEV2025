@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset
@@ -22,14 +22,29 @@ class EEGDataset:
         self.X_train, self.y_train = X_train, y_train
         self.X_test, self.y_test = X_test, y_test
 
-    
-    def get_dataset(self, time_window=1.0, sfreq=250, overlap=0.1, balance:float=None):
+
+    def get_dataset(self, time_window=1.0, sfreq=250, overlap=0.1, balance:float=None, scale=True):
         """Return the dataset."""
 
         X_train, y_train = create_dataset(self.X_train, self.y_train, 
                                            time_window, sfreq, overlap)
         X_test, y_test = create_dataset(self.X_test, self.y_test, 
                                            time_window, sfreq, overlap)
+
+        if scale:
+            # Initialize scaler and fit on training data only
+            scaler = StandardScaler()
+            # Reshape for scaling (samples, features)
+            orig_shape = X_train.shape
+            X_train_2d = X_train.reshape(X_train.shape[0], -1)
+            # Fit and transform
+            X_train_2d = scaler.fit_transform(X_train_2d)
+            X_train = X_train_2d.reshape(orig_shape)
+
+            # Apply same transformation to test data
+            X_test_2d = X_test.reshape(X_test.shape[0], -1)
+            X_test_2d = scaler.transform(X_test_2d)
+            X_test = X_test_2d.reshape(X_test.shape)
 
         if balance is not None:
             X_train, y_train = balance_classes(X_train, y_train, balance)
@@ -64,7 +79,7 @@ class EEGDatasetTorch(Dataset):
     def __getitem__(self, idx):
         x = self.X[idx]
         y = self.y[idx]
-        return x, y
+        return x.T, y
 
 
 def load_data(data_dir, subjects):
