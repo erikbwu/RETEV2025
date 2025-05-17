@@ -108,7 +108,7 @@ def temporal_alignment(key_data: pd.DataFrame, eeg_data: pd.DataFrame, event_map
     return merged_data
 
 
-def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif_data_dir: str, event_map: dict, delay: float=0.0):
+def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif_data_dir: str, event_map: dict, delay: float=0.0, skip_start: float=0.0, drop_end: float=0.0):
     """
     Create datasets from key and EEG data by merging them and saving as CSV and FIF files.
 
@@ -119,6 +119,8 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
         fif_data_dir (str): Directory to save the FIF files.
         event_map (dict): Dictionary mapping keys to event IDs.
         delay (float): Delay in seconds to account for the latency of the EEG system.
+        skip_start (float): untested
+        drop_end (float): untested
     """
     assert os.path.exists(key_data_dir), f"Key log directory {key_data_dir} does not exist."
     assert os.path.exists(eeg_data_dir), f"EEG log directory {eeg_data_dir} does not exist."
@@ -144,6 +146,25 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
             # load the data
             key_data = pd.read_csv(os.path.join(key_sub_dir, key_file))
             eeg_data = pd.read_csv(os.path.join(eeg_sub_dir, eeg_file))
+
+            # --- SKIP_START: drop everything before skip_start, then re-zero times ---
+            if skip_start > 0:
+                eeg_data = eeg_data[eeg_data['sys_time'] >= skip_start].copy()
+                eeg_data['sys_time'] -= skip_start                                            # re-zero sys_time
+
+                key_data = key_data[key_data['timestamp'] >= skip_start].copy()
+                key_data['timestamp'] -= skip_start                                           # re-zero key timestamps
+
+            if drop_end > 0: # EEG: keep rows where sys_time <= max_time - drop_end
+                max_t = eeg_data['sys_time'].max()
+                thresh_t = max_t - drop_end
+                eeg_data = eeg_data[eeg_data['sys_time'] <= thresh_t].copy()
+
+                # Key: same logic on 'timestamp'
+                max_k = key_data['timestamp'].max()
+                thresh_k = max_k - drop_end
+                key_data = key_data[key_data['timestamp'] <= thresh_k].copy()
+            
             
             # merge the data
             merged_data = temporal_alignment(key_data, eeg_data, event_map, delay=delay)
@@ -158,11 +179,26 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
             fif_path = os.path.join(fif_sub_dir, key_file.replace('.csv', '.fif'))
             fif_data.save(fif_path, overwrite=True)
 
+def stringToInt(string: str, default=0) -> int:
+    if string == "":
+        print(default)
+        return default
+    else:
+        return int(string)
+
+def stringToFloat(string: str, default=0.0) -> float:
+    if string == "":
+        print(default)
+        return default
+    else:
+        return float(string)
 
 def main():
-    
-    DELAY = 0.0  # delay in seconds to account for the latency of the EEG system
 
+    DELAY = stringToFloat(input("Input delay [default: 0.0]: "), 0.0)  # delay in seconds to account for the latency of the EEG system
+    SKIP_START = stringToFloat(input("Input skip start [default: 0.0]: "), 0.0)
+    DROP_END = stringToFloat(input("Input drop end [default: 0.0]: "), 0.0)
+    
     # load the event ID mapping (key-stroke to id)
     with open('data/event_ids1.json') as f:
         event_map = json.load(f)
@@ -174,7 +210,9 @@ def main():
         "data/datasets/csv/",
         "data/datasets/fif/",
         event_map,
-        delay=DELAY
+        delay=DELAY,
+        skip_start=SKIP_START,
+        drop_end=DROP_END,
     )
 
     # create the dataset using the raw data
@@ -184,7 +222,9 @@ def main():
         "data/datasets_raw/csv/",
         "data/datasets_raw/fif/",
         event_map,
-        delay=DELAY
+        delay=DELAY,
+        skip_start=SKIP_START,
+        drop_end=DROP_END,
     )
 
 if __name__ == "__main__":
