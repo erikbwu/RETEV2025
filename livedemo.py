@@ -17,7 +17,7 @@ JUMP_THRESHOLD = 0.85       # Probability threshold for jump
 MODEL_PATH = "best_model.h5"  # Path to trained EEGNet model
 
 # === Load Trained Model ===
-model = load_model(FilePath)
+model = load_model('C:\\Users\\simeo\\Desktop\\RETEV2025\\models\\firstattempt91per.h5')
 print("Model loaded.")
 
 # === Butterworth Bandpass Filter ===
