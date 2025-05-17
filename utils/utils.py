@@ -136,9 +136,10 @@ class EEGListener:
                 print("No sample received.")  # Debug print
                 continue
             
-            # print(f"Sample received: {sample}")  # Debug print
+            #print(f"Sample received: {sample}")  # Debug print
             if self.callback:
                 self.callback(sample, sys_time, eeg_time)
+                #self.callback(sample)
     
     def start(self):
         """Start the EEG listener."""

@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from pyKey import pressKey, releaseKey
+from pyKey import pressKey, releaseKey, showKeys
 import threading
 
 from utils.utils import EEGListener
@@ -34,6 +34,7 @@ class EEGKeyboard:
         Parameters:
             sample (list): The incoming EEG data sample.
         """
+        sample = sample[:-1]
         assert len(sample) == 8, "Sample must have 8 channels"
 
         # Shift the buffer to make room for the new sample
@@ -48,14 +49,16 @@ class EEGKeyboard:
         pred = np.squeeze(pred)
 
         # most likely class - assumes the output is a probability distribution
-        ml_class = np.argmax(pred, axis=1)[0]
+        #ml_class = np.argmax(pred, axis=1)[0]
+        ml_class = pred
+        print(pred)
 
         # TODO assign the class to the key based on your model
 
-        if ml_class == 0:
-            trigger_key('space')
+        if ml_class == 1:
+            trigger_key('SPACEBAR',0.2)
         
-        # else: do nothing - no key press detected
+        #else: do nothing - no key press detected
 
     def _prediction_loop(self):
         """
@@ -85,16 +88,37 @@ class EEGKeyboard:
             self.prediction_thread.join()
        
 
-def main():
+class Trashy:
+    def __init__(self, threshold: float = 0.5):
+        self.threshold = threshold
 
+    def predict(self, x):
+        """
+        Predicts the class based on a threshold.
+
+        Parameters:
+            x (numpy.ndarray): The input data.
+
+        Returns:
+            numpy.ndarray: The predicted class (0 or 1).
+        """
+        arr = np.array(x)
+        first_col = arr[:, 0]
+        avg = np.mean(first_col)
+        #print(avg)
+        return avg > 4.3 and avg < 7
+
+def main():
     # Load the model 
-    model = None  # TODO load your model here
+    model = Trashy(2)  # TODO load your model here
 
     # Create an EEGKeyboard instance
     eeg_keyboard = EEGKeyboard(model)
 
     # create EEG data stream
-    eeg_listener = EEGListener(stream_name='EEGStream', callback=eeg_keyboard.update_buffer)
+    stream_name = 'UnicornRecorderRawDataLSLStream'
+    stream_name = 'UnicornRecorderLSLStream'
+    eeg_listener = EEGListener(stream_name=stream_name, callback=eeg_keyboard.update_buffer)
 
     # start the prediction loop
     eeg_listener.start()
