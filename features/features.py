@@ -26,7 +26,7 @@ def power_spectra(X: np.ndarray, sfreq=250, f_max=40, chan_aggr='mean') -> np.nd
         X (np.ndarray): Input data of shape (n_samples, n_channels, n_times).
         sfreq (int, optional): Sampling frequency in Hz. Defaults to 250.
         f_max (int, optional): Maximum frequency to consider. Defaults to 40.
-        chan_aggr (str, optional): Channel aggregation method. Defaults to 'mean'.
+        chan_aggr (str, optional): Channel aggregation method ('mean', 'median', 'flatten'). Defaults to 'mean'.
 
     Returns:
         tuple: Tuple containing:
@@ -77,8 +77,60 @@ def split_fbands(X: np.ndarray, fbands=[(4,8), (8,13), (13,30), (30,40)], sfreq=
 
     return np.array(X_bands)
 
-
 # TODO add statistical features, e.g. mne_features
 
 # TODO add time-frequency features
 
+
+
+# OUR FEATURES ------------------------------------------------------------------------- 
+
+def select_channels(X: np.ndarray, channels) -> np.ndarray:
+    """ Select only given channels from 
+
+    Args:
+        X (np.ndarray): Input data of shape (n_samples, n_channels, n_times).
+        channels (int list): Channel indices to select
+
+    Returns:
+        np.ndarray: Array of shape (n_samples, n_selected_channels, n_times)
+    """
+
+    return X[:, channels, :]
+
+def split_time_bands(X: np.ndarray,
+                     time_bands=[(0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)]
+                    ) -> np.ndarray:
+    """ Split time frames into given sections and compute the average over these as features
+
+    Args:
+        X (np.ndarray): Input data of shape (n_samples, n_channels, n_times).
+        time_bands: List of tuples containing start and end of the time band in percent
+
+    Returns:
+        np.ndarray: Array of shape (n_samples, n_channels, n_time_bands)
+    """
+    n_samples, n_channels, n_times = X.shape
+
+    # Convert percents to integer indices
+    index_tuples = [
+        (int(np.floor(start * n_times)), int(np.ceil(end * n_times)))
+        for start, end in time_bands
+    ]
+
+    # For each band, slice and compute mean over the time axis
+    band_means = []
+    for start_idx, end_idx in index_tuples:
+        # X[:, :, start_idx:end_idx] has shape (n_samples, n_channels, band_length)
+        band_mean = X[:, :, start_idx:end_idx].mean(axis=2)
+        # band_mean has shape (n_samples, n_channels)
+        band_means.append(band_mean)
+
+    # Stack along a new third dimension → (n_samples, n_channels, n_time_bands)
+    return np.stack(band_means, axis=2)
+
+def flatten_channels(features_per_channel: np.ndarray) -> np.ndarray:
+    """ Transform input of shape (n_samples, n_channels, n_fatures) to (n_samples, n_features*n_channels) """
+    n_samples, n_channels, n_features = features_per_channel.shape
+    return features_per_channel.reshape((n_samples, n_features*n_channels))
+    

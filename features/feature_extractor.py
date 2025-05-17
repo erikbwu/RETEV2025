@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 
-from features.features import channel_covariance, power_spectra
+from features.features import *
 
 
 class FeatureExtractor:
@@ -32,7 +32,19 @@ class FeatureExtractor:
         # Try experimenting with the provided methods or 
         # try different methods you find in the literature.
 
-        return self.extractor.transform(X)
+        #return self.extractor.transform(X)
+
+        # I think the channels are called 'ch1' until 'ch8', and refer to ['Fz', 'C3', 'Cz', 'C4', 'Pz', 'PO7', 'Oz', 'PO8']
+        
+        result = np.hstack([
+                # flatten_channels(split_time_bands(select_channels(X, [0]))), # bad results
+                # flatten_channels(split_time_bands(X)),                       # bad results
+                # power_spectra(select_channels(X, [0]))[0],                   # bad results
+                self.extractor.transform(X)
+            ])
+
+        assert len(result.shape) == 2, f"Feature transformation results in incorrect shape: {result.shape}"
+        return result
 
     def fit_transform(self, X):
         """ Fit the feature extractor to the data and transform it. """

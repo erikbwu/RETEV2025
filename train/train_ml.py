@@ -82,10 +82,11 @@ def optimize(X_train, y_train, param_list):
     """
 
     # create the model
-    model = MLModel()
+    model = MLModel('rfc')
 
     # create the parameter grid
     param_grid = {"model__" + k: v for k, v in param_list.items()}
+    # param_grid = {"model__" + k: v for k, v in [next(iter(param_list.items()))]}  # skip hyperparameter optimization by using just the first given params
 
     # perform grid search
     scoring = ["accuracy", "balanced_accuracy", "f1_micro", "f1_macro"]
@@ -150,7 +151,7 @@ def main():
         pickle.dump(model, f)
 
     # evaluate the model on the test set
-    # evaluate(model_dir, X_test, y_test)
+    evaluate(model_dir, X_test, y_test)
 
 
 if __name__ == "__main__":
