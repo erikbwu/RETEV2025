@@ -142,6 +142,11 @@ def create_datasets(key_data_dir: str, eeg_data_dir: str, csv_data_dir: str, fif
         assert len(key_files) == len(eeg_files), f"Number of key files and EEG files does not match for subject {sub}."
 
         for key_file, eeg_file in zip(key_files, eeg_files):
+
+            print("\n")
+            c = input(f"Combining {key_file} with {eeg_file} [s=Skip, enter=Combine]: ")
+            if (c == "s" or c == "S"):
+                continue
             
             # load the data
             key_data = pd.read_csv(os.path.join(key_sub_dir, key_file))
