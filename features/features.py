@@ -90,7 +90,7 @@ def select_channels(X: np.ndarray, channels) -> np.ndarray:
 
     Args:
         X (np.ndarray): Input data of shape (n_samples, n_channels, n_times).
-        channels (int list): Channel indices to select
+        channels (int list): Channel indices to select (i think the channels are called 'ch1' until 'ch8', and refer to ['Fz', 'C3', 'Cz', 'C4', 'Pz', 'PO7', 'Oz', 'PO8'])
 
     Returns:
         np.ndarray: Array of shape (n_samples, n_selected_channels, n_times)
