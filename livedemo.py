@@ -1,11 +1,14 @@
 # eeg_jump_game.py
-# Real-time EEG-based jump action using EEGNet and the Unicorn Hybrid Black
+# Real-time EEG-based jump action using EEGNet and the Unicorn Hybrid Black Pytorch
 
 import numpy as np
 import pyautogui
 import time
 from scipy.signal import butter, filtfilt
-from tensorflow.keras.models import load_model
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from unicorn_bin.udp import UnicornUDP
 
 # === CONFIGURATION ===

@@ -51,7 +51,7 @@ class EEGKeyboard:
         # most likely class - assumes the output is a probability distribution
         #ml_class = np.argmax(pred, axis=1)[0]
         ml_class = pred
-        print(pred)
+        #print(pred)
 
         # TODO assign the class to the key based on your model
 
@@ -102,11 +102,11 @@ class Trashy:
         Returns:
             numpy.ndarray: The predicted class (0 or 1).
         """
-        print(x)
+        #print(x)
         arr = np.array(x)
         first_col = arr[:, 0]
         avg = np.mean(first_col)
-        #print(avg)
+        print(avg)
         return avg > 4.3 and avg < 7
 
 def main():
