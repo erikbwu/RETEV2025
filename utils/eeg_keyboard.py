@@ -59,7 +59,7 @@ class EEGKeyboard:
             trigger_key('SPACEBAR',0.2)
         
         #else: do nothing - no key press detected
-
+       
     def _prediction_loop(self):
         """
         Internal method to run predictions in a loop.
@@ -102,6 +102,7 @@ class Trashy:
         Returns:
             numpy.ndarray: The predicted class (0 or 1).
         """
+        print(x)
         arr = np.array(x)
         first_col = arr[:, 0]
         avg = np.mean(first_col)
