@@ -44,7 +44,7 @@ def parse_args():
         "--model",
         type=str,
         default="rfc",
-        choices=["svc", "rfc", "baseline", "riemann", "threshold"],
+        choices=["svc", "rfc", "baseline", "riemann", "threshold", "line", "average"],
         help="Which classifier to train",
     )
     return parser.parse_args()
@@ -141,16 +141,40 @@ def main():
     print("dataset classes: ", np.unique(y_train, return_counts=True))
 
     # train & optimize the model
+
+    #uppers = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7.0, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10.0]
+    
+    uppers = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]
+    lowers = [-x for x in uppers]
+
+    # hpo_params = {
+    #     "upper_threshold": uppers + [x * 10.0 for x in uppers] + [x * 100.0 for x in uppers],
+    #     "lower_threshold": lowers + [x * 10.0 for x in lowers] + [x * 100.0 for x in lowers],
+    #     "n_exceeding_threshold": [1],
+    # }
+    hpo_params = {
+        "upper_threshold": [0.0],
+        "lower_threshold": [0.0],
+        "n_exceeding_threshold": [1],
+    }
     # hpo_params = {
     #     "upper_threshold": [1.0, 10.0, 100.0],
     #     "lower_threshold": [-1.0, -10.0, -100.0],
     #     "n_exceeding_threshold": [1, 2, 3],
     # }
-    hpo_params = {
-        "upper_threshold": [1.0, 10.0, 50.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0],
-        "lower_threshold": [-1.0, -10.0, -50.0, -100.0, -150.0, -200.0, -300.0, -400.0, -500.0, -600.0, -700.0, -800.0, -900.0, -1000.0],
-        "n_exceeding_threshold": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 80, 130, 200],
-    }
+    # hpo_params = {
+    #     "upper_threshold": [0.6, 0.8, 6.0, 8.0, 60.0, 80.0, 600.0, 800.0],
+    #     "lower_threshold": [-0.6, -0.8, -0.6, -0.8, -60.0, -80.0, -600.0, -800.0],
+    #     "n_exceeding_threshold": [0, 1, 2, 3, 4, 6, 8, 10, 20, 40, 80, 130, 200],
+        # "feature_kwargs__pca_components": [0.90, 0.80, 0.60],
+        # "model_kwargs__kernel": ["linear", "rbf"],
+        # "model_kwargs__C": [0.1, 1.0, 10.0, 100.0],
+    # }
+    # hpo_params = {
+    #     "upper_threshold": [1.0, 10.0, 50.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0],
+    #     "lower_threshold": [-1.0, -10.0, -50.0, -100.0, -150.0, -200.0, -300.0, -400.0, -500.0, -600.0, -700.0, -800.0, -900.0, -1000.0],
+    #     "n_exceeding_threshold": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 80, 130, 200],
+    # }
     # hpo_params = {
     #     "feature_kwargs__pca_components": [0.90, 0.80, 0.60],
     #     "model_kwargs__kernel": ["linear", "rbf"],

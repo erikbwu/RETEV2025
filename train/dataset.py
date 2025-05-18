@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset
 
+from mne.filter import filter_data
 
 
 class EEGDataset:
@@ -38,6 +39,13 @@ class EEGDataset:
         # filter the dataset
         X_train, y_train = filter_dataset(X_train, y_train)
         X_test, y_test = filter_dataset(X_test, y_test)
+
+        
+        # Pre process the samples
+        for i in range(X_train.shape[0]):
+            X_train[i, :, :] = pre_process_sample(X_train[i, :, :], sfreq=250, l_cutoff=9.0, h_cutoff=None)
+        for i in range(X_test.shape[0]):
+            X_test[i, :, :] = pre_process_sample(X_test[i, :, :], sfreq=250, l_cutoff=9.0, h_cutoff=None)
 
         X_train = np.swapaxes(X_train, 1, 2)
         X_test = np.swapaxes(X_test, 1, 2)
@@ -119,6 +127,33 @@ def should_keep_sample(x, threshold):
     """
     return not np.any(np.abs(x) > threshold)
     # return np.sum(np.abs(X[i, :, :]) > threshold) < 20 # alternative where at most 20 entries of X[i, :, :] are allowed above the threshold
+
+def pre_process_sample(x: np.ndarray,
+               sfreq: float,
+               l_cutoff: float = 8.0,
+               h_cutoff: float = 12.0) -> np.ndarray:
+    """
+    Low-pass filter using MNE (channels last).
+
+    Args:
+        data (n_times, n_channels): time-series data.
+        sfreq (float): sampling frequency.
+        l_cutoff: float | None – low-cut frequency; None means no high-pass.
+        h_cutoff: float | None – high-cut frequency; None means no low-pass.
+
+    Returns:
+        filtered_data (n_times, n_channels)
+    """
+    # MNE expects shape (n_channels, n_times)
+    data_T = x.T
+    assert data_T.shape[0] <= 8, f"data_T must have at most 8 channels, but has {data_T.shape[0]} channels. Maybe it is already transposed?"
+    filtered_T = filter_data(data_T, sfreq=sfreq,
+                             l_freq=l_cutoff,         # no high-pass
+                             h_freq=h_cutoff,       # low-pass at cutoff
+                             verbose=False,
+                             method='iir')
+    return filtered_T.T
+
 
 def load_data(data_dir, subjects):
     """ Load the data from the specified path and subjects. """

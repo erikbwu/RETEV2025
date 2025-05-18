@@ -1,7 +1,43 @@
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
+from sklearn.ensemble import RandomForestClassifier
+
 from features import FeatureExtractor
+
+class AverageThreasholdClassifier(BaseEstimator, ClassifierMixin):
+    """ Classifier that uses an upper and a lower threshold to classify the data. """
+    def __init__(self, upper_threshold, lower_threshold, n_exceeding_threshold=1):
+        """ Initialize the classifier with the upper and lower thresholds. """
+        self.upper_threshold = upper_threshold
+        self.lower_threshold = lower_threshold
+        self.n_exceeding_threshold = n_exceeding_threshold
+
+    def fit(self, X, y):
+        """ Fit the classifier to the data. """
+        # No fitting required for threshold classifier
+        return self
+
+    def predict(self, X):
+        """ Predict the class labels for the data. """
+        # Check if the input is a 2D array
+        assert X.ndim == 3, f"Input data must be a 3D array, but was {X.ndim}D."
+        
+        # Apply the thresholds to classify the data
+        # A sample is classified as 1 iff the average over all channels is at one time above the upper threshold and at another time below the lower threshold, otherwise 0
+        # In general what is described here as channel can be an arbitrary feature
+        X_averaged_over_features = np.mean(X, axis=1)
+        X_avg = np.mean(X_averaged_over_features, axis=1)
+        predictions = np.zeros(X.shape[0], dtype=int)
+
+        for i in range(X.shape[0]):
+            if X_avg[i] < self.upper_threshold and X_avg[i] > self.lower_threshold:
+                predictions[i] = 1
+            else:
+                predictions[i] = 0
+
+        return predictions
+
 
 class ThresholdClassifier(BaseEstimator, ClassifierMixin):
     """ Classifier that uses an upper and a lower threshold to classify the data. """
@@ -34,7 +70,42 @@ class ThresholdClassifier(BaseEstimator, ClassifierMixin):
                 predictions[i] = 0
         
         return predictions
+
+class LineIntersectionClassifier(BaseEstimator, ClassifierMixin):
+    def __init__(self, upper_threshold, lower_threshold, n_exceeding_threshold=1):
+        """ Initialize the classifier with the upper and lower thresholds. """
+        self.upper_threshold = upper_threshold
+        self.lower_threshold = lower_threshold
+        self.n_exceeding_threshold = n_exceeding_threshold
     
+
+    def fit(self, X, y):
+        """ Fit the classifier to the data. """
+        # No fitting required for threshold classifier
+        return self
+
+    def predict(self, X):
+        """ Predict the class labels for the data. """
+        # Check if the input is a 2D array
+        assert X.ndim == 3, f"Input data must be a 3D array, but was {X.ndim}D."
+        
+        # Apply the thresholds to classify the data
+        # A sample is classified as 1 iff the average over all channels is at one time above the upper threshold and at another time below the lower threshold, otherwise 0
+        # In general what is described here as channel can be an arbitrary feature
+        X_averaged_over_features = np.mean(X, axis=1)
+
+        predictions = np.zeros(X.shape[0], dtype=int)
+        for i in range(X.shape[0]):
+            intersect_upper = np.sum(np.abs(X_averaged_over_features[i] - self.upper_threshold) < 1e-4)
+            intersect_lower = np.sum(np.abs(X_averaged_over_features[i] - self.lower_threshold) < 1e-4)
+            minimum = int(self.n_exceeding_threshold * (1.0/3.0))
+            maximum = int(self.n_exceeding_threshold * (3.0/1.0))
+            if intersect_upper >= minimum and intersect_upper <= maximum and intersect_lower >= minimum and intersect_lower <= maximum:
+                predictions[i] = 1
+            else:
+                predictions[i] = 0
+        
+        return predictions
 
 def model_selection(model_name):
     """ Select the model based on the model name. """
@@ -52,6 +123,12 @@ def model_selection(model_name):
 
     elif model_name == 'threshold':
         return ThresholdClassifier
+
+    elif model_name == 'line':
+        return LineIntersectionClassifier
+
+    elif model_name == 'average':
+        return AverageThreasholdClassifier
     
     elif model_name == 'baseline':
         from models import BaselineClf
@@ -100,7 +177,7 @@ class MLModel(BaseEstimator, ClassifierMixin):
         feature_kwargs = self.feature_kwargs or {}
         model_kwargs = self.model_kwargs or {}
         self.feature_extractor = FeatureExtractor(**feature_kwargs)
-        self.model = self.model_cls(**model_kwargs)
+        self.model = RandomForestClassifier() # self.model_cls(**model_kwargs)
 
         # print("Shapes before feature extractor: ", X.shape, y.shape)
         X = self.feature_extractor.fit_transform(X)

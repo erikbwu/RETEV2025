@@ -46,7 +46,7 @@ class FeatureExtractor:
                 # power_spectra(select_channels(X, [0]))[0],                   # bad results
         #        self.extractor.transform(X)
         #    ])
-        result = X # select_channels(X, [0])
+        result = np.mean(split_fbands(X), axis=3).reshape(X.shape[0], -1)  # shape (n_samples, n_channels * n_bands)
 
         # assert len(result.shape) == 2, f"Feature transformation results in incorrect shape: {result.shape}" # Often a sensible assertion, but sometimes the features are not 2D
         return result
