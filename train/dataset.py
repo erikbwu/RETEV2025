@@ -31,6 +31,17 @@ class EEGDataset:
         X_test, y_test = create_dataset(self.X_test, self.y_test, 
                                            time_window, sfreq, overlap)
 
+        # X_train.shape = (n_samples, n_times, n_channels)
+        # y_train.shape = (n_samples,)
+        # print("Shapes during dataset creation: ", X_train.shape, y_train.shape)
+
+        # filter the dataset
+        X_train, y_train = filter_dataset(X_train, y_train)
+        X_test, y_test = filter_dataset(X_test, y_test)
+
+        X_train = np.swapaxes(X_train, 1, 2)
+        X_test = np.swapaxes(X_test, 1, 2)
+
         if balance is not None:
             X_train, y_train = balance_classes(X_train, y_train, balance)
 
@@ -66,6 +77,48 @@ class EEGDatasetTorch(Dataset):
         y = self.y[idx]
         return x, y
 
+def filter_dataset(X, y, threshold=10000.0):
+    """Filter the dataset.
+
+    Args:
+        X (np.ndarray): sample data
+        y (np.ndarray): target data
+        threshold (float, optional): threshold for filtering. Defaults to 10.0.
+    
+    Returns:
+        np.ndarray: filtered X
+        np.ndarray: filtered y
+    """
+    assert threshold > 0, "threshold must be greater than 0"
+
+    # A sample (axis 0) is filtered out iff any of the channels (axis 2) at any time (axis 1) is above the threshold
+    mask = np.zeros(X.shape[0], dtype=bool)
+    for i in range(X.shape[0]):
+        mask[i] = should_keep_sample(X[i, :, :], threshold)
+    
+    X = X[mask]
+    y = y[mask]
+
+    print(f"Kept {mask.sum()} samples out of {len(mask)}")
+
+    # sanity checks
+    assert X.shape[0] > 0, "X must not be empty"
+    assert X.shape[0] == y.shape[0], "X and y must have the same length"
+
+    return X, y
+    
+def should_keep_sample(x, threshold):
+    """Check if a sample should be kept based on the threshold.
+
+    Args:
+        x (np.ndarray): sample data of shape (n_times, n_channels)
+        threshold (float, optional): threshold for filtering. Defaults to 10.0.
+    
+    Returns:
+        bool: True if the sample should be kept, False otherwise.
+    """
+    return not np.any(np.abs(x) > threshold)
+    # return np.sum(np.abs(X[i, :, :]) > threshold) < 20 # alternative where at most 20 entries of X[i, :, :] are allowed above the threshold
 
 def load_data(data_dir, subjects):
     """ Load the data from the specified path and subjects. """

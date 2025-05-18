@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.decomposition import PCA
+from pyriemann.estimation import Covariances
 
 from features.features import *
 
@@ -11,13 +12,14 @@ class FeatureExtractor:
     """
 
     def __init__(self, *args, **kwargs):
-        self.extractor = ReducedChannelCovariance(*args, **kwargs)
+        self.extractor = NothingFeatureExtractor(*args, **kwargs)
 
     def fit(self, X):
         """ Fit the feature extractor to the data.
         Args:
             X (np.ndarray): sample data (n_samples, n_channels, n_times)
         """
+        # X = np.swapaxes(X, 1, 2)  # so that the shape is actually as described in the docstring
         self.extractor.fit(X)
 
     def transform(self, X):
@@ -28,6 +30,8 @@ class FeatureExtractor:
             np.ndarray: transformed data (n_samples, n_features)
         """
         
+        # X = np.swapaxes(X, 1, 2)  # so that the shape is actually as described in the docstring
+
         # TODO selecting relevant features is important. 
         # Try experimenting with the provided methods or 
         # try different methods you find in the literature.
@@ -36,14 +40,15 @@ class FeatureExtractor:
 
         # I think the channels are called 'ch1' until 'ch8', and refer to ['Fz', 'C3', 'Cz', 'C4', 'Pz', 'PO7', 'Oz', 'PO8']
         
-        result = np.hstack([
+        #result = np.hstack([
                 # flatten_channels(split_time_bands(select_channels(X, [0]))), # bad results
                 # flatten_channels(split_time_bands(X)),                       # bad results
                 # power_spectra(select_channels(X, [0]))[0],                   # bad results
-                self.extractor.transform(X)
-            ])
+        #        self.extractor.transform(X)
+        #    ])
+        result = X # select_channels(X, [0])
 
-        assert len(result.shape) == 2, f"Feature transformation results in incorrect shape: {result.shape}"
+        # assert len(result.shape) == 2, f"Feature transformation results in incorrect shape: {result.shape}" # Often a sensible assertion, but sometimes the features are not 2D
         return result
 
     def fit_transform(self, X):
@@ -51,6 +56,22 @@ class FeatureExtractor:
         self.fit(X)
         return self.transform(X)
     
+
+class NothingFeatureExtractor:
+    """ Dummy feature extractor that does nothing. """
+
+    def fit(self, X):
+        """ Fit the feature extractor to the data. """
+        pass
+
+    def transform(self, X):
+        """ Transform the data using the fitted feature extractor. """
+        return X
+
+    def fit_transform(self, X):
+        """ Fit the feature extractor to the data and transform it. """
+        return self.transform(X)
+
 
 class SimplePCA:
 

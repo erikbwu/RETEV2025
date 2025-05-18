@@ -40,6 +40,13 @@ def parse_args():
         default=1,
         help="Number of times to run the training.",
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="rfc",
+        choices=["svc", "rfc", "baseline", "riemann", "threshold"],
+        help="Which classifier to train",
+    )
     return parser.parse_args()
 
 
@@ -69,7 +76,7 @@ def evaluate(model_dir, X_test, y_test):
         f.write(classification_report)
 
 
-def optimize(X_train, y_train, param_list):
+def optimize(X_train, y_train, param_list, model_name):
     """hyper parameter optimization using grid search.
 
     Args:
@@ -80,12 +87,14 @@ def optimize(X_train, y_train, param_list):
     Returns:
         dict: best parameters found during optimization
     """
+    print("Modelname in optimize: ", model_name)
 
     # create the model
-    model = MLModel('rfc')
+    model = MLModel(model_name=model_name)
 
     # create the parameter grid
-    param_grid = {"model__" + k: v for k, v in param_list.items()}
+    param_grid = param_list
+    # param_grid = {"model__" + k: v for k, v in param_list.items()}
     # param_grid = {"model__" + k: v for k, v in [next(iter(param_list.items()))]}  # skip hyperparameter optimization by using just the first given params
 
     # perform grid search
@@ -101,15 +110,17 @@ def optimize(X_train, y_train, param_list):
     return grid_search.best_params_
 
 
-def train_model(X_train, y_train, hpo_parameters):
+def train_model(X_train, y_train, hpo_parameters, model_name):
 
     # hyperparameter optimization
-    best_params = optimize(X_train, y_train, hpo_parameters)
+    best_params = optimize(X_train, y_train, hpo_parameters, model_name)
 
     # load best hyper-parameters
+    # print("Modelname in train_model: ", model_name)
     model = MLModel(
-        feature_kwargs=best_params.get("feature_kwargs", {}), 
-        model_kwargs=best_params.get("model_kwargs", {})
+        model_name=model_name,
+        #feature_kwargs=best_params.get("feature_kwargs", {}), 
+        **best_params
     )
 
     # fit final model
@@ -120,6 +131,7 @@ def train_model(X_train, y_train, hpo_parameters):
 def main():
     # parse command line arguments
     args = parse_args()
+    print("Command line arguments: ", args)
 
     # create the dataset
     ds = EEGDataset(args.data_path, args.subjects, test_split=0.2)
@@ -129,12 +141,34 @@ def main():
     print("dataset classes: ", np.unique(y_train, return_counts=True))
 
     # train & optimize the model
+    # hpo_params = {
+    #     "upper_threshold": [1.0, 10.0, 100.0],
+    #     "lower_threshold": [-1.0, -10.0, -100.0],
+    #     "n_exceeding_threshold": [1, 2, 3],
+    # }
     hpo_params = {
-        "feature_kwargs__pca_components": [0.90, 0.80, 0.60],
-        "model_kwargs__kernel": ["linear", "rbf"],
-        "model_kwargs__C": [0.1, 1.0, 10.0, 100.0],
+        "upper_threshold": [1.0, 10.0, 50.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0],
+        "lower_threshold": [-1.0, -10.0, -50.0, -100.0, -150.0, -200.0, -300.0, -400.0, -500.0, -600.0, -700.0, -800.0, -900.0, -1000.0],
+        "n_exceeding_threshold": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 80, 130, 200],
     }
-    model = train_model(X_train, y_train, hpo_parameters=hpo_params)
+    # hpo_params = {
+    #     "feature_kwargs__pca_components": [0.90, 0.80, 0.60],
+    #     "model_kwargs__kernel": ["linear", "rbf"],
+    #     "model_kwargs__C": [0.1, 1.0, 10.0, 100.0],
+    # }
+    # hpo_params = {
+    #     # Covariance estimation
+    #     "feature_kwargs__estimator": ['scm', 'lwf', 'oas'],
+    #     "feature_kwargs__alpha":     [0.0, 0.1, 0.2],   # for covariances_X, if used
+    
+    #     # MDM classifier
+    #     "model_kwargs__metric":  ['riemann', 'logeuclid', 'euclid'],
+    #     "model_kwargs__n_jobs":   [1, -1],
+        
+    #     # (Optional) Geodesic‑filter variant
+    #     "model_kwargs__tsupdate": [True, False],
+    # }
+    model = train_model(X_train, y_train, hpo_parameters=hpo_params, model_name=args.model)
 
     # save results
     class_name = model.model.__class__.__name__

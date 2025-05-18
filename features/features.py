@@ -4,7 +4,6 @@ from mne.filter import filter_data
 from scipy.signal import welch
 
 
-
 def channel_covariance(X: np.ndarray) -> np.ndarray:
     """ Compute the covariance matrix over channels.
 
